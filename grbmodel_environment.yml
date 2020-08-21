@@ -1,0 +1,13 @@
+name: grbmodel
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.7.6
+  - h5py=2.9.0
+  - astropy=3.2.1
+  - ipython=7.6.1
+  - emcee=2.2.1
+  - naima=0.8.3
+  - numpy=1.16.4
+
