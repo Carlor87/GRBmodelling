@@ -5,7 +5,6 @@ from astropy.table import Table, hstack
 import astropy.units as u
 from astropy.io import ascii
 import naima
-import time
 
 from grbloader import *
 
@@ -19,7 +18,6 @@ redshift = 0.4245
 tstart = 68   # s
 tstop = 110   # s
 
-start_time = time.time()
 magicgrb = GRBModelling(8e53, 0.5, [newt], 68, 110, 0.4245,
                         [-1.64541059, -1.74167436,  3.13222916,  1.16770817,  0.37490981],
                         ['log10(eta_e)', 'log10(Ebreak)', 'Index2', 'log10(Ec)', 'log10(B)'],
@@ -27,9 +25,8 @@ magicgrb = GRBModelling(8e53, 0.5, [newt], 68, 110, 0.4245,
 
 # naima.InteractiveModelFitter(magicgrb.naimamodel,magicgrb.pars,data = magicgrb.dataset,labels=magicgrb.labels)
 
-# testrun = magicgrb.run_naima("quickrun", 32, 10, 50, 2, prefit=True)
-print("--- %s seconds ---" % (time.time() - start_time))
-testrun = naima.read_run("quickrun_chain.h5", magicgrb.naimamodel)  # to reload a previous fit
+testrun = magicgrb.run_naima("quickrun", 64, 50, 100, 2, prefit=False)
+# testrun = naima.read_run("quickrun_chain.h5", magicgrb.naimamodel)  # to reload a previous fit
 
 pars = [np.median(a) for a in testrun.flatchain.T]
 magicgrb.pars = pars
