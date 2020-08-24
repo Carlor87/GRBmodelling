@@ -25,8 +25,8 @@ magicgrb = GRBModelling(8e53, 0.5, [newt], 68, 110, 0.4245,
 
 # naima.InteractiveModelFitter(magicgrb.naimamodel,magicgrb.pars,data = magicgrb.dataset,labels=magicgrb.labels)
 
-testrun = magicgrb.run_naima("quickrun", 64, 50, 100, 2, prefit=False)
-# testrun = naima.read_run("quickrun_chain.h5", magicgrb.naimamodel)  # to reload a previous fit
+# testrun = magicgrb.run_naima("quickrun", 64, 50, 100, 2, prefit=False)
+testrun = naima.read_run("quickrun_chain.h5", magicgrb.naimamodel)  # to reload a previous fit
 
 pars = [np.median(a) for a in testrun.flatchain.T]
 magicgrb.pars = pars

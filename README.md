@@ -7,7 +7,7 @@ geometry and the doppler boosting.
 See the description in the source file where all the methods are described.
 
 A proper document describing the rationale behind the model is in preparation.A preliminary description can be found
-in the first part of [this](https://www.overleaf.com/4723117928bfsxvhdtxryf)
+in [this](https://www.overleaf.com/read/ddhndqcfgzxc)
 overleaf document.
 
 Just to make sure that all the scripts are running properly, here the [file](grbmodel_environment.yml) that you can use
