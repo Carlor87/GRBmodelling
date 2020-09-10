@@ -28,6 +28,8 @@ import naima
 from naima.models import Synchrotron, InverseCompton, ExponentialCutoffBrokenPowerLaw
 from naima import uniform_prior, normal_prior
 
+import matplotlib.pyplot as plt
+
 # static variables:
 #
 m_e = con.m_e.cgs.value
@@ -792,3 +794,33 @@ class GRBModelling:
             dnde = model / enarray / enarray
             intflux = naima.utils.trapz_loglog(dnde, enarray)
         return intflux
+
+    def quick_plot_sed(self, emin, emax, ymin, ymax):
+        """
+        Function for a quick plot of the model on a user specific energy range.
+        If a dataset is present, this is plotted using NAIMA internal routine.
+
+        Parameters
+        ----------
+          emin : float
+            minimum energy of the interval (in eV)
+          emax : float
+            maximum energy of the interval (in eV)
+          ymin : float
+            minimum value for the y-axis (in erg/cm2/s)
+          ymax : float
+            maximum value for the y-axis (in erg/cm2/s)
+        """
+
+        bins = int(np.log10(emax/emin) * 20.)  # use 20 bins per decade
+        newene = Table([np.logspace(np.log10(emin), np.log10(emax), bins) * u.eV], names=['energy'])  # energy in eV
+        model = self.naimamodel(self.pars, newene)  # make sure we are computing the model for the new energy range
+        f = plt.figure()
+        if self.dataset:
+            naima.plot_data(self.dataset, figure=f)
+        plt.loglog(newene, model[0], 'k-', label='TOTAL', lw=3, alpha=0.8)
+        plt.loglog(newene, self.synch_comp, 'k--', label='Synch. w/o abs.')
+        plt.loglog(newene, self.ic_comp, 'k:', label='IC w/o abs.')
+        plt.legend()
+        plt.xlim(emin, emax)
+        plt.ylim(ymin, ymax)
