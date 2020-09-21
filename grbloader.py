@@ -48,7 +48,6 @@ mpc2_erg = mpc2.to('erg').value
 #
 # Functions for calculation of gamma-gamma absorption
 
-
 def sigma_gammagamma(Eph1, Eph2):
     """
     gamma-gamma cross section averaged over scattering angle
