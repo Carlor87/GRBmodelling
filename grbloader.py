@@ -1,6 +1,7 @@
+"""
 # GRB modelling with NAIMA
 #
-# Author: C. Romoli - MPIK
+# Author: C. Romoli - MPIK (carlor87 AT gmail.com)
 #
 # Thanks to F.Aharonian, A.Taylor, D. Khangulyan
 # that helped with the theoretical framework
@@ -14,7 +15,7 @@
 # - Aharonian, 2000 - https://ui.adsabs.harvard.edu/abs/2000NewA....5..377A/abstract
 # - Atoyan & Aharonian, 1996 - http://adsabs.harvard.edu/abs/1996MNRAS.278..525A
 # - Rybicki & Lightman, 1979 - https://ui.adsabs.harvard.edu/abs/1979rpa..book.....R/abstract
-
+"""
 
 import numpy as np
 

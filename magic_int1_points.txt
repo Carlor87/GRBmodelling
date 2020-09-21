@@ -1,3 +1,8 @@
+\ Paper reference: MAGIC Collaboration, "Observation of inverse Compton emission from a long γ-ray burst"
+\ MWL points of GRB 190114C during the first interval of the MAGIC observation.
+\ The points were extracted directly from the paper, might not be extremely precise.
+\ tstart = 68 s
+\ tstop = 110 s
 |             energy|                   flux|                flux_hi|               flux_lo|
 |             double|                 double|                 double|                double|
 |                 eV|           erg cm-2 s-1|           erg cm-2 s-1|          erg cm-2 s-1|
