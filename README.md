@@ -54,21 +54,21 @@ and in the last line we import our GRB class.
 After this we set some physical parameters and we read the datapoints and create an astropy table
 for them with the following:
 ```python
-Eiso = 8e53   # erg
-density = 0.5 # cm-3
+Eiso = 8e53    # erg
+density = 0.5  # cm-3
 redshift = 0.4245 
-tstart = 68   # s
-tstop = 110   # s
+tstart = 68    # s
+tstop = 110    # s
 
 tab = ascii.read("magic_int1_points.txt")
-newt = Table([tab['energy'],tab['flux'],tab['flux_hi']-tab['flux'],tab['flux']-tab['flux_lo']],
-             names=['energy','flux','flux_error_hi','flux_error_lo'])
+newt = Table([tab['energy'], tab['flux'], tab['flux_hi']-tab['flux'], tab['flux']-tab['flux_lo']],
+             names=['energy', 'flux', 'flux_error_hi', 'flux_error_lo'])
 ```
 Now we have all that is needed to initialise the GRB class and this is done with
 ```python
 magicgrb = GRBModelling(Eiso, density, [newt], tstart, tstop, redshift,
-                        [np.log10(0.07), -1.53,  2.87,  0.45,  0.01],
-                        ['log10(eta_e)','log10(Ebreak)','Index2','log10(Ec)','log10(B)'],
+                        [np.log10(0.07), -1.53, 2.87, 0.45, 0.01],
+                        ['log10(eta_e)', 'log10(Ebreak)', 'Index2', 'log10(Ec)', 'log10(B)'],
                         cooling_constrain=False)
 ```
 where the second line is the list of the initial parameters, the third line is the list
@@ -76,13 +76,18 @@ of the parameters labels, and the last one is to tell the script not to add an a
 prior based on the cooling time at the break of the electron distributions.
 
 The fit can then be run by simply calling the function:
-`magicgrb.run_naima("testmagic_etae",128,50,100,2,prefit = True)`
+`magicgrb.run_naima("testmagic_etae", 128, 50, 100, 2, prefit=True)`
 
 where the arguments are:
 * basename of the file it is going to be saved with the whole chain and results
 * number of parallel walkers
 * steps for the burn-in phase
 * number of steps of the chain
+* number of processors to use
+* option to run a Maximum Likelihood (ML) fit before the MCMC.
+
+_Note: Beware that it can happen that the ML fit converges towards a solution that is not allowed
+by the priors on the parameters._
 
 ### Plot the results
 To plot the results we can use the built-in functions in NAIMA like `plot_chain`, `plot_corner`
@@ -96,37 +101,36 @@ magicgrb.pars = pars
 ```
 then we can plot the model and the data as
 ```python
-newene = Table([np.logspace(-1,13,500)*u.eV],names=['energy'])
+newene = Table([np.logspace(-1, 13, 500)*u.eV], names=['energy'])
 naima.plot_data(magicgrb.dataset)
-model = magicgrb.naimamodel(magicgrb.pars,newene)[0]
-plt.loglog(newene,model,'k-',label="TOT",lw = 3,alpha=0.3)
-plt.loglog(newene,magicgrb.synch_comp,'k--',alpha=0.5,label="Synch.")
-plt.loglog(newene,magicgrb.ic_comp,'k-.',alpha=0.5,label="IC no abs.")
-plt.loglog(newene,magicgrb.ic_compGG,'k:',alpha=0.5,label="IC abs. method 1")
+model = magicgrb.naimamodel(magicgrb.pars, newene)[0]
+plt.loglog(newene, model, 'k-', label="TOT", lw=3, alpha=0.3)
+plt.loglog(newene, magicgrb.synch_comp, 'k--', alpha=0.5, label="Synch.")
+plt.loglog(newene, magicgrb.ic_comp, 'k-.', alpha=0.5, label="IC no abs.")
+plt.loglog(newene, magicgrb.ic_compGG, 'k:', alpha=0.5, label="IC abs. method 1")
 ```
 
 If we want also the confidence intervals calculated by NAIMA, we can use the following
 ```python
-newene = [1e-4*u.eV,1e13*u.eV]
-a,b = naima.plot._calc_CI(testrun,confs=[1],modelidx=0,e_range=newene) # this is a protected naima function...I know...
+newene = [1e-4*u.eV, 1e13*u.eV]
+a,b = naima.plot._calc_CI(testrun,confs=[1], modelidx=0, e_range=newene)  # this is a protected naima function...I know...
 xval = a.value
-ymax1 = b[0][1].value # 1 sigma
-ymin1 = b[0][0].value # 1 sigma
+ymax1 = b[0][1].value  # 1 sigma
+ymin1 = b[0][0].value  # 1 sigma
 plt.fill_between(xval,
                  ymax1,
                  ymin1,
-                alpha = 0.2,
-                color='C0',
-                label = "1$\sigma$")
+                 alpha=0.2,
+                 color='C0',
+                 label="1$\sigma$")
 
-plt.ylim(0.9e-9,1.1e-7)
-plt.xlim(1e3,1e13)
-plt.xlabel("Energy [eV]", size = 13)
-plt.ylabel("$E^2\mathrm{d}N/\mathrm{d}E$ [$\mathrm{erg\,s^{-1}\,cm^{-2}}$]", size = 13)
-ax=plt.gca()
-ax.tick_params(axis='both',labelsize=12)
+plt.ylim(0.9e-9, 1.1e-7)
+plt.xlim(1e3, 1e13)
+plt.xlabel("Energy [eV]", size=13)
+plt.ylabel("$E^2\mathrm{d}N/\mathrm{d}E$ [$\mathrm{erg\,s^{-1}\,cm^{-2}}$]", size=13)
+ax = plt.gca()
+ax.tick_params(axis='both', labelsize=12)
 plt.legend()
 
 plt.show()
 ```
-
