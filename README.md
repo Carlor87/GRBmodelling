@@ -1,5 +1,5 @@
 # GRB modelling using NAIMA toolbox
-This repository contains a small class in and some methods that allow to model 
+This repository contains a small class and some methods that allow to model 
 SSC emission from GRBs using NAIMA.
 
 The class can be easily modified to change the injected electron distribution 
