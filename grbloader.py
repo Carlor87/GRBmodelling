@@ -217,8 +217,15 @@ class GRBModelling:
     is based on the picture of particle acceleration at the forward shock,
     which propagates outwards through the circumburst material
     (see   `R. D. Blandford, C. F. McKee,Physics of Fluids19, 1130 (1976)`).
+    It is possible to choose between 3 scenario options:
+      - ISM : homogeneous interstellar medium of density n
+      - Wind : density of the material with r^-2 dependance and dictated by a certain value of mass loss rate
+               of the star `mass_loss` (in solar masses per year) and a certain wind speed `wind_speed` (in km/s)
+      - average : an ISM scenario but with parameters of the size of the shock that are\
+                  an average of the 2 previous cases
     Given the total isotropic energy of the explosion
-    (`Eiso`), the density of material surrounding the GRB (`n`) and the time of the observation (after trigger),
+    `Eiso`, the density of material surrounding the GRB `n` (or a mass loss rate and a wind speed),
+    and the time of the observation (after trigger),
     it computes the physical parameters of the GRB, like the Lorentz factor `gamma` and the size of the emitting
     shell.
 
@@ -246,6 +253,12 @@ class GRBModelling:
         list of parameters of a naima.models.ExponentialCutoffBrokenPowerLaw
     labels : list
         list of parameter names (as strings)
+    scenario : string
+        dictates the density of the circumburst material (DEFAULT = 'ISM')
+    mass_loss : float
+        mass loss rate of the progenitor (in solar masses per year; for `Wind` scenario only)
+    wind_speed : float
+        wind speed of the progenitor star (in km per second; for `Wind` scenario only)
     cooling_constrain : boolean
         If True adds to the prior a constrain for which cooling time at break ~ age of the system. DEFAULT = True
         If synch_nolimit = True, this option does not do anything.
@@ -290,6 +303,9 @@ class GRBModelling:
     """
 
     def __init__(self, eiso, dens, data, tstart, tstop, redshift, pars, labels,
+                 scenario='ISM',
+                 mass_loss=0,
+                 wind_speed=0,
                  cooling_constrain=True,
                  synch_nolimit=False):
         """
@@ -313,6 +329,12 @@ class GRBModelling:
             list of parameters passed to the model function
           labels : list
             names of the parameters passed to the model
+          scenario : string
+            'ISM', 'Wind' or 'average'
+          mass_loss : float
+            mass loss rate of the progenitor star (in solar masses per year for Wind scenario, no effect otherwise)
+          wind_speed : float
+            wind speed of the progenitor star (in km/s for Wind scenario, no effect otherwise)
           cooling_constrain : bool
             boolean to add a contrain on cooling time at break ~ age of of the system in the prior function
           synch_nolimit : bool
@@ -338,6 +360,9 @@ class GRBModelling:
         self.Dl = cosmo.luminosity_distance(redshift)  # luminosity distance with units
         self.pars = pars  # parameters for the fit
         self.labels = labels  # labels of the parameters
+        self.scenario = scenario  # string valid options: 'average', 'Wind', 'ISM'
+        self.mass_loss = mass_loss  # Value of the mass loss rate of progenitor in solar masses per year
+        self.wind_speed = wind_speed  # Value of the wind speed of the projenitor in km/s
         self.cooling_constrain = cooling_constrain  # if True add in the prior a constrain on cooling break
         self.synch_nolimit = synch_nolimit  # boolean for SSC (=0) or synchrotron without cut-off limit model (=1)
         self.gamma = 0  # Gamma factor of the GRB at certain time
@@ -351,7 +376,6 @@ class GRBModelling:
         self.ic_comp = 0  # Spectrum of the IC component
         self.naimamodel = 0  # Model used for the fit - initialized in later function
         self.lnprior = 0  # Prior used for the fit - initialized in later function
-        self.gammaval()  # Compute Gamma value and size of the region
         self.load_model_and_prior()  # Loads the NAIMA model and the relative prior
         self.esycool = 0  # Characteristic synchrotron energy corresponding to the break energy of the electrons
         self.synchedens = 0  # total energy density of synchrotron photons
@@ -360,24 +384,61 @@ class GRBModelling:
         self.synch_compGG2 = 0  # synchrotron component of the model with gammagamma absorption with METHOD 2
         self.ic_compGG2 = 0  # inverse compton component of the model with gammagamma absorption with METHOD 2
 
+    def _density_value(self):
+        """
+        Computes the density of the medium in the Wind scenario assuming
+        a mass loss rate of the progenitor of mass_loss in solar masses per year and
+        a wind speed wind_speed in km/s
+
+        Modifies the attribute self.density
+        """
+        if self.scenario == 'Wind':
+            self.density = (self.mass_loss * 1.2e57 / 3.15e7) / (4. * np.pi * self.wind_speed * 1e5 * self.sizer ** 2)
+
     def gammaval(self):
         """
         Computes the Lorentz factor and the size of the region
         Expression from Blandford&McKee,1976.
 
-        Gamma^2 = 3 / (4 * pi) * E_iso / (n * m_p * c^2 * R^3)
+        Gamma^2 = E_iso / Mc^2
 
+        where M is the mass of the material swept by the shock which can be computed in case of homogenous
+        density or wind scenario, with the density that decreases as r^-2 (see documentation file for more details).
         The calculation of the radius uses the relation
 
-        R = 6*Gamma^2*(ct) (average between ISM and Wind scenario)
+        R = A * Gamma^2 * (ct)
+
+        where A can be 4 (for Wind scenario), 8 (ISM scenario), 6 (for the average)
 
         Time is the average between the tstart and tstop.
         The functions takes automatically the initialization parameters
         """
-
-        self.gamma = (1. / 6.) ** (3. / 8.) * (
-                3.0 * self.Eiso / (4.0 * np.pi * self.density * mpc2_erg * ((c * self.avtime) ** 3.0))) ** 0.125
-        self.sizer = 6. * c * self.avtime * self.gamma ** 2
+        if (self.scenario == 'average'):
+            self.gamma = (1. / 6.) ** (3. / 8.) * (
+                    3.0 * self.Eiso / (4.0 * np.pi * self.density * mpc2_erg * ((c * self.avtime) ** 3.0))) ** 0.125
+            self.sizer = 6. * c * self.avtime * self.gamma ** 2.
+            self.depthpar = 9. / 2.
+        elif (self.scenario == 'Wind'):
+            if self.mass_loss == 0 or self.wind_speed == 0:
+                text = "Need to define non 0 values for the mass loss rate and the wind speed!"
+                raise ValueError(text)
+            self.gamma = ((3. * self.Eiso * self.wind_speed * 1e5) / (
+                        4. * c ** 3 * self.avtime * self.mass_loss * 2e33 / 3.15e7)) ** 0.25
+            self.sizer = 4. * self.gamma ** 2 * c * self.avtime
+            self.depthpar = 3. / 1.
+            self._density_value()
+        elif (self.scenario == 'ISM'):
+            self.gamma = (1. / 8.) ** (3. / 8.) * (
+                    3.0 * self.Eiso / (4.0 * np.pi * self.density * mpc2_erg * ((c * self.avtime) ** 3.0))) ** 0.125
+            self.sizer = 8. * c * self.avtime * self.gamma ** 2.
+            self.depthpar = 9. / 1.
+        else:
+            text = "Chosen scenario: %s\n" \
+                   "The scenario indicated not found. Please choose between\n" \
+                   " - 'average' : average between wind and ISM scenario\n" \
+                   " - 'Wind' : wind scenario\n" \
+                   " - 'ISM' : ISM scenario" % self.scenario
+            raise ValueError(text)
 
     def load_model_and_prior(self):
         """
@@ -389,6 +450,7 @@ class GRBModelling:
         or the priors
         """
 
+        self.gammaval()  # call the function to fill the compute the basic GRB initialization parameters
         self.naimamodel = self._naimamodel_ind1fixed
         # change here for the prior functions
         # For performance it is better to use if statements here to avoid having them in the prior function
