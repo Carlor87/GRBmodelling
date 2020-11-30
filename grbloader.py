@@ -367,6 +367,7 @@ class GRBModelling:
         self.synch_nolimit = synch_nolimit  # boolean for SSC (=0) or synchrotron without cut-off limit model (=1)
         self.gamma = 0  # Gamma factor of the GRB at certain time
         self.sizer = 0  # External radius of the shell
+        self.depthpar = 0  # private attribute to control the depth of the shock: d = R/(self.depthpar * Gamma)
         self.shock_energy = 0  # Available energy in the shock
         self.Emin = 0 * u.eV  # Minimum injection energy for the particle distribution
         self.Wesyn = 0  # Total energy in the electrons

@@ -30,8 +30,9 @@ tstop = 110   # s
 Initialize the GRBModelling class with the data and the given parameters
 """
 magicgrb = GRBModelling(8e53, 0.5, [newt], 68, 110, 0.4245,
-                        [-1.64541059, -1.74167436,  3.13222916,  1.16770817,  0.37490981],
+                        [-1.44, -1.62,  3.17,  1.32,  0.29],
                         ['log10(eta_e)', 'log10(Ebreak)', 'Index2', 'log10(Ec)', 'log10(B)'],
+                        scenario='ISM',
                         cooling_constrain=False)
 
 """ 
@@ -45,7 +46,7 @@ Run the fitting routine
 # testrun = magicgrb.run_naima("quickrun", 64, 50, 100, 2, prefit=False)
 testrun = naima.read_run("quickrun_chain.h5", magicgrb.naimamodel)  # to reload a previous fit using NAIMA function
 
-pars = [np.median(a) for a in testrun.flatchain.T]  # read the parameter distributions and save the median
+pars = [np.mean(a) for a in testrun.flatchain.T]  # read the parameter distributions and save the median
 magicgrb.pars = pars
 
 """

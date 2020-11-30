@@ -69,11 +69,23 @@ Now we have all that is needed to initialise the GRB class and this is done with
 magicgrb = GRBModelling(Eiso, density, [newt], tstart, tstop, redshift,
                         [np.log10(0.07), -1.53, 2.87, 0.45, 0.01],
                         ['log10(eta_e)', 'log10(Ebreak)', 'Index2', 'log10(Ec)', 'log10(B)'],
+                        scenario='ISM',
                         cooling_constrain=False)
 ```
 where the second line is the list of the initial parameters, the third line is the list
-of the parameters labels, and the last one is to tell the script not to add an additional
-prior based on the cooling time at the break of the electron distributions.
+of the parameters labels, then to use the `ISM` scenario, and the last one is to tell the script
+to not add an additional prior based on the cooling time at the break of the electron distributions.
+
+The parameter `scenario` controls the profile of the density of the circumburst material in the
+initialization. The possiblities are:
+ * `ISM` : constant density of the material as given by the `density` entry
+ * `Wind` : density of the material that follows a r^-2 law. If this scenario is chosen, then two additional
+   parameters must be given. `mass_loss` that indicates the mass loss rate of the progenitor star (in solar
+   masses per year) and `wind_speed` that is the value of the speed of the stellar wind (in km/s).
+   In this case the variable `density` will be computed internally according to the values of the
+   radius, mass loss rate and wind speed.
+ * `average` : that uses a constant density but a derivation of the size and width of the shock that is an averge
+   of the values for the ISM and Wind case. 
 
 The fit can then be run by simply calling the function:
 `magicgrb.run_naima("testmagic_etae", 128, 50, 100, 2, prefit=True)`
