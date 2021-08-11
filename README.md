@@ -51,7 +51,7 @@ from grbloader import *
 ```
 and in the last line we import our GRB class.
 
-After this we set some physical parameters and we read the datapoints and create an astropy table
+After this we set some physical parameters, we read the datapoints and create an astropy table
 for them with the following:
 ```python
 Eiso = 8e53    # erg
